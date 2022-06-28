@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>CS.JS</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/9f66f50bc0.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="card mt-2">
+            <div class="card-header bg-dark text-white">
+                <div class="text-center mt-2">
+                    <h1 class="display-1" id="textHeaderTitle"><strong>CS.JS</strong></h1>
+                    <button class="btn btn-lg btn-light rounded-pill" id="buttonStart">
+                        &nbsp;&nbsp;<i class="fa-play fa-solid fa-2x"></i>&nbsp;
+                    </button>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="d-flex justify-content-start">
+                            <img src="./images/gun_5.png" id="myGun" style="display:none" class="d text-left" width="200" height="40" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-center">
+                            <strong><p class="text-center display-6" id="textHeaderInfoBox"></p></strong>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex justify-content-end">
+                            <img src="./images/health_3.png" id="myHealth" style="display:none" class="float-right" width="200" height="40" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body bg-warning">
+                <div class="text-center">
+                    <canvas class="bg-light" id="canvasShooter"></canvas>
+                </div>
+            </div>
+        </div>
+        <img src="./images/enemy.png" id="imgEnemyIdle" width="0" height="0" />
+        <img src="./images/enemy_bang.png" id="imgEnemyBang" width="0" height="0" />
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+    <script src="./js/shooter.js"></script>
+</body>
+</html>
