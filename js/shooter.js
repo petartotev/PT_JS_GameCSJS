@@ -29,10 +29,10 @@ async function playGameAsync() {
     resetGame();
 
     await playIntro321GoAsync();
-    
+
     showNavbarDetails();
 
-    // Loop through all the enemies:
+    // Loop through all Enemies:
     for (let i = 0; i < countEnemiesTotal; i++) {
         isStageEnemyKilled = false;
         textHeaderInfoBox.innerHTML = getTextTargetsRemaining(i);
@@ -50,7 +50,7 @@ async function playGameAsync() {
             && gunValue >= 0 && isGunLoaded === true) {
                 isStageEnemyKilled = true;
                 pointsWon += 1;
-                textHeaderInfoBox.innerHTML = getTextTargetsRemaining(i - 1);
+                textHeaderInfoBox.innerHTML = getTextTargetsRemaining(i + 1);
 
                 new Audio("./sounds/player_success.wav").play();
             }
