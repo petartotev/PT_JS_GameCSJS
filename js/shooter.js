@@ -1,7 +1,7 @@
 ﻿// ==================== Game Variables ====================
 
 var isGameOn = false;
-var countEnemiesTotal = 3;
+var countEnemiesTotal = 12;
 var difficultyByTimeBetweenEnemies = 50;
 var difficultyByEnemySizeFull = 100;
 
@@ -134,16 +134,16 @@ async function playIntroAsync() {
 
     ctx.font = "100px Arial";
     ctx.fillStyle = "black";
-    ctx.fillText("3", 600, 375);
+    ctx.fillText("3", 630, 375);
     await sleep(1000);
     ctx.clearRect(0, 0, 1280, 720);
-    ctx.fillText("2", 600, 375);
+    ctx.fillText("2", 630, 375);
     await sleep(1000);
     ctx.clearRect(0, 0, 1280, 720);
-    ctx.fillText("1", 600, 375);
+    ctx.fillText("1", 630, 375);
     await sleep(1000);
     ctx.clearRect(0, 0, 1280, 720);
-    ctx.fillText("GO!", 540, 375);
+    ctx.fillText("GO!", 570, 375);
     await sleep(1000);
     ctx.clearRect(0, 0, 1280, 720);
 }
