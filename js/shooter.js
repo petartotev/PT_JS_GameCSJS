@@ -1,26 +1,32 @@
 ﻿// ==================== Game Variables ====================
 
-var pointsWon = 0;
-var gunValue = 5;
-var isGunLoaded = true;
-var healthValue = 3;
-var countEnemiesTotal = 12;
-var isStageEnemyKilled = false;
-var difficultyBySize = 100;
-var difficultyByTime = 50;
+var isGameOn = false;
+var countEnemiesTotal = 3;
+var difficultyByTimeBetweenEnemies = 50;
+var difficultyByEnemySizeFull = 100;
+
+var playerScore = 0;
+var playerHealth = 3;
+var playerGun = 5;
+
+var roundNumber = 0;
+var enemyPositionX = 0;
+var enemyPositionY = 0;
+var isEnemyOnStageKilled = false;
+var isPlayerCurrentlyShot = false;
+var isPlayerGunLoaded = true;
 
 // ==================== HTML Elements ====================
 
 var textHeaderTitle = document.getElementById("textHeaderTitle");
 var textHeaderInfoBox = document.getElementById("textHeaderInfoBox");
 var buttonHeaderStart = document.getElementById("buttonHeaderStart");
-var gun = document.getElementById("imageGun");
-var health = document.getElementById("imageHealth");
+var imageGun = document.getElementById("imageGun");
+var imageHealth = document.getElementById("imageHealth");
 
 var canvasShooter = document.getElementById("canvasShooter");
 canvasShooter.width = 1280;
 canvasShooter.height = 720;
-canvasShooter.style.cursor = "crosshair";
 var ctx = canvasShooter.getContext("2d");
 
 // ==================== Main Functions ====================
@@ -28,67 +34,60 @@ var ctx = canvasShooter.getContext("2d");
 async function playGameAsync() {
     resetGame();
 
-    await playIntro321GoAsync();
+    await playIntroAsync();
 
-    showNavbarDetails();
+    showGameDetailsInNavbar();
+
+    isGameOn = true;
 
     // Loop through all Enemies:
-    for (let i = 0; i < countEnemiesTotal; i++) {
-        isStageEnemyKilled = false;
-        textHeaderInfoBox.innerHTML = getTextTargetsRemaining(i);
-        textHeaderInfoBox.style.color = countEnemiesTotal - i <= 3 ? "orange" : "white";
+    for (roundNumber = 0; roundNumber < countEnemiesTotal; roundNumber++) {
+        isPlayerCurrentlyShot = false;
 
-        await sleep((difficultyByTime * 2) + (countEnemiesTotal * 100) - (i * 50));
+        textHeaderInfoBox.innerHTML = getTextTargetsRemaining(roundNumber);
+        textHeaderInfoBox.style.color = playerHealth <= 1 ? "red" : (countEnemiesTotal - roundNumber <= 3 ? "orange" : "white");
 
-        var positionEnemyX = 1230 - (Math.floor(Math.random() * 1181));
-        var positionEnemyY = 670 - (Math.floor(Math.random() * 621));
+        await sleep((difficultyByTimeBetweenEnemies * 2) + (countEnemiesTotal * 100) - (roundNumber * 50));
 
-        // Update result if enemy is hit on click:
-        canvasShooter.addEventListener("click", (event) => {
-            if (((event.offsetX <= positionEnemyX + (difficultyBySize / 2)) && (event.offsetX >= positionEnemyX - (difficultyBySize / 2)))
-            && ((event.offsetY <= positionEnemyY + (difficultyBySize / 2)) && (event.offsetY >= positionEnemyY - (difficultyBySize / 2)))
-            && gunValue >= 0 && isGunLoaded === true) {
-                isStageEnemyKilled = true;
-                pointsWon += 1;
-                textHeaderInfoBox.innerHTML = getTextTargetsRemaining(i + 1);
+        setEnemyAtRandomPositionOnCanvas();
 
-                new Audio("./sounds/player_success.wav").play();
-            }
-        });
+        isEnemyOnStageKilled = false;
 
         // Enemy grows on screen:
-        for (let j = 0; j <= difficultyBySize; j++) {
-            ctx.drawImage(imgEnemyIdle, (positionEnemyX - (j / 2)), (positionEnemyY - (j / 2)), j, j);
+        for (let enemySizeCurr = 0; enemySizeCurr <= difficultyByEnemySizeFull; enemySizeCurr++) {
+            ctx.drawImage(imgEnemyIdle, (enemyPositionX - (enemySizeCurr / 2)), (enemyPositionY - (enemySizeCurr / 2)), enemySizeCurr, enemySizeCurr);
 
-            await sleep(countEnemiesTotal - (i / 2));
+            await sleep(countEnemiesTotal - (roundNumber / 2));
 
-            if (isStageEnemyKilled === true) {
+            if (isEnemyOnStageKilled === true) {
                 ctx.clearRect(0, 0, 1280, 720);
                 break;
             }
 
-            // If enemy grows to full size => shoots player and decreases their health:
-            if (j === difficultyBySize) {
+            // If Enemy grows to its full size => shoots Player and decreases their Health:
+            if (enemySizeCurr === difficultyByEnemySizeFull) {
+                isPlayerCurrentlyShot = true;
+
                 new Audio("./sounds/gun_shoot.wav").play();
 
-                ctx.drawImage(imgEnemyBang, (positionEnemyX - (j / 2)), (positionEnemyY - (j / 2)), j, j);
+                ctx.drawImage(imgEnemyBang, (enemyPositionX - (enemySizeCurr / 2)), (enemyPositionY - (enemySizeCurr / 2)), enemySizeCurr, enemySizeCurr);
                 
                 await sleep(250);
 
                 await decreaseHealthAsync();
 
-                if (healthValue === 0) {
+                if (playerHealth === 0) {
                     break;
                 }
             }
         }
 
-        if (healthValue === 0) {
+        if (playerHealth === 0) {
             break;
         }
     }
 
-    var isGameWon = healthValue === 0 ? false : true;
+    var isGameWon = playerHealth === 0 ? false : true;
     await endGameAsync(isGameWon);
 
     buttonHeaderStart.innerHTML = "&nbsp;&nbsp;" + "<i class=\"fa-forward-step fa-solid fa-2x\"></i>" + "&nbsp;";
@@ -96,6 +95,8 @@ async function playGameAsync() {
 };
 
 async function endGameAsync(isGameWon) {
+    isGameOn = false;
+
     new Audio("./sounds/game_win_" + isGameWon ? "counter_terrorists.wav" : "terrorists.wav").play();
 
     await sleep(1000);
@@ -103,39 +104,46 @@ async function endGameAsync(isGameWon) {
     textHeaderInfoBox.style.color = isGameWon ? "green" : "red";
     textHeaderInfoBox.innerHTML = isGameWon ? "You won!" : "Game over!";
 
-    await sleep(2000);
+    await sleep(2500);
 
     ctx.font = "100px Arial";
     ctx.fillStyle = isGameWon ? "green" : "red";
-    ctx.fillText(isGameWon ? `Your points: ${pointsWon}` : "You lost! ", isGameWon ? 320 : 460, 360);
+    ctx.fillText(isGameWon ? `Your points: ${playerScore}` : "You lost! ", isGameWon ? 320 : 460, 375);
 
-    hideNavbarDetails();
+    await sleep(3000);
+
+    ctx.clearRect(0, 0, 1280, 720);
+    ctx.fillStyle = "black";
+    ctx.fillText("One more?", 400, 375);
+
+    resetCanvasCursor();
+    hideGameDetailsInNavbar();
 }
 
 function resetGame() {
     resetEnvironment();
     resetGameStats();
-    resetGun();
-    resetHealth();
+    resetPlayer();
+    resetEnemy();
 }
 
 // ==================== Helper Functions ====================
 
-async function playIntro321GoAsync() {
+async function playIntroAsync() {
     new Audio("./sounds/game_start.wav").play();
 
     ctx.font = "100px Arial";
     ctx.fillStyle = "black";
-    ctx.fillText("3", 600, 360);
+    ctx.fillText("3", 600, 375);
     await sleep(1000);
     ctx.clearRect(0, 0, 1280, 720);
-    ctx.fillText("2", 600, 360);
+    ctx.fillText("2", 600, 375);
     await sleep(1000);
     ctx.clearRect(0, 0, 1280, 720);
-    ctx.fillText("1", 600, 360);
+    ctx.fillText("1", 600, 375);
     await sleep(1000);
     ctx.clearRect(0, 0, 1280, 720);
-    ctx.fillText("GO!", 540, 360);
+    ctx.fillText("GO!", 540, 375);
     await sleep(1000);
     ctx.clearRect(0, 0, 1280, 720);
 }
@@ -150,86 +158,132 @@ async function decreaseHealthAsync() {
     ctx.clearRect(0, 0, 1280, 720);
     ctx.fillStyle = "black";
 
-    healthValue--;
-    health.setAttribute("src", `./images/health_${healthValue}.png`);
+    playerHealth--;
+    imageHealth.setAttribute("src", `./images/health_${playerHealth}.png`);
 }
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function showNavbarDetails() {
-    gun.style.display = health.style.display = "inline";
+function showGameDetailsInNavbar() {
+    imageGun.style.display = imageHealth.style.display = "inline";
     textHeaderInfoBox.innerHTML = getTextTargetsRemaining(0);
 }
 
-function hideNavbarDetails() {
-    gun.style.display = health.style.display = "none";
+function hideGameDetailsInNavbar() {
+    imageGun.style.display = imageHealth.style.display = "none";
     textHeaderInfoBox.innerHTML = "";
 }
 
 function getTextTargetsRemaining(curr) {
-    return `<strong>${("000" + (countEnemiesTotal - curr)).slice(-2)} / ${countEnemiesTotal} <img src="./images/enemy.png" width="45" height="45" /> | ${("000" + pointsWon).slice(-2)} pts</strong>`;
+    return `<strong>${("000" + (countEnemiesTotal - curr)).slice(-2)} / ${countEnemiesTotal} <img src="./images/enemy.png" width="45" height="45" /> | ${("000" + playerScore).slice(-2)} pts</strong>`;
 }
 
 function resetEnvironment() {
     ctx.clearRect(0, 0, 1280, 720);
     textHeaderInfoBox.innerHTML = "";
     textHeaderInfoBox.style.color = "white";
+    canvasShooter.style.cursor = "crosshair";
 }
 
 function resetGameStats() {
-    pointsWon = 0;
-    isStageEnemyKilled = false;
+    playerScore = 0;
+    roundNumber = 0;
+}
+
+function resetPlayer() {
+    isPlayerCurrentlyShot = false;
+    resetGun();
+    resetHealth();
+}
+
+function resetEnemy() {
+    isEnemyOnStageKilled = false;
+    enemyPositionX = enemyPositionY = 0;
 }
 
 function resetGun() {
-    gunValue = 5;
-    isGunLoaded = true;
-    gun.setAttribute("src", "./images/gun_5.png");
+    playerGun = 5;
+    isPlayerGunLoaded = true;
+    imageGun.setAttribute("src", "./images/gun_5.png");
 }
 
 function resetHealth() {
-    healthValue = 3;    
-    health.setAttribute("src", "./images/health_3.png");
+    playerHealth = 3;    
+    imageHealth.setAttribute("src", "./images/health_3.png");
+}
+
+function resetCanvasCursor() {
+    canvasShooter.style.cursor = "default";
+}
+
+function setEnemyAtRandomPositionOnCanvas() {
+    enemyPositionX = 1230 - (Math.floor(Math.random() * 1181));
+    enemyPositionY = 670 - (Math.floor(Math.random() * 621));
 }
 
 // ==================== Event Listeners ====================
 
-// Play game (on pressed 'START' button)
+// Play game (on pressed 'START' button):
 buttonHeaderStart.addEventListener("click", () => {
     buttonHeaderStart.style.display = textHeaderTitle.style.display = "none";
     playGameAsync();
 });
 
-// Reload gun (on pressed 'Enter' keyboard key)
+// Reload gun (on pressed 'Enter' keyboard key):
 document.addEventListener("keypress", (event) => {
-    if (event.key === 'Enter') {
-        gunValue = 5;
-        isGunLoaded = true;
-        gun.setAttribute("src", "./images/gun_5.png");
-
-        new Audio("./sounds/gun_reload.wav").play();
+    if (isGameOn) {
+        if (event.key === 'Enter') {
+            playerGun = 5;
+            isPlayerGunLoaded = true;
+            imageGun.setAttribute("src", "./images/gun_5.png");
+    
+            new Audio("./sounds/gun_reload.wav").play();
+        }
     }
 });
 
-// Shoot (on canvas click)
+// Shoot (on canvas click):
 canvasShooter.addEventListener("click", () => {
-    if (gunValue === 0) {
-        isGunLoaded = false;
-        gun.setAttribute("src", "./images/gun_0.png");
-
-        new Audio("./sounds/gun_empty.wav").play();
-    } else {
-        gunValue--;
-        let imageGunPath = gunValue < 5 ? `./images/gun_${gunValue}.png` : "./images/gun_5.png"
-        gun.setAttribute("src", imageGunPath);
-
-        new Audio("./sounds/gun_shoot.wav").play();
+    if (isGameOn) {
+        if (playerGun === 0) {
+            isPlayerGunLoaded = false;
+            imageGun.setAttribute("src", "./images/gun_0.png");
+    
+            new Audio("./sounds/gun_empty.wav").play();
+        } else {
+            playerGun--;
+            let imageGunPath = playerGun < 5 ? `./images/gun_${playerGun}.png` : "./images/gun_5.png"
+            imageGun.setAttribute("src", imageGunPath);
+    
+            new Audio("./sounds/gun_shoot.wav").play();
+        }
     }
 });
 
-// Change cursor (on canvas hover)
-canvasShooter.addEventListener("mousedown", () => canvasShooter.style.cursor = "move");
+// Update result if enemy is hit on click:
+canvasShooter.addEventListener("click", (event) => {
+    if (isGameOn && !isEnemyOnStageKilled && !isPlayerCurrentlyShot && isPlayerGunLoaded && playerGun >= 0
+        && ((event.offsetX <= enemyPositionX + (difficultyByEnemySizeFull / 2)) && (event.offsetX >= enemyPositionX - (difficultyByEnemySizeFull / 2)))
+        && ((event.offsetY <= enemyPositionY + (difficultyByEnemySizeFull / 2)) && (event.offsetY >= enemyPositionY - (difficultyByEnemySizeFull / 2)))) {
+        isEnemyOnStageKilled = true;
+        playerScore += 1;
+        textHeaderInfoBox.innerHTML = getTextTargetsRemaining(roundNumber + 1);
+        new Audio("./sounds/player_success.wav").play();
+    }
+});
 
-canvasShooter.addEventListener("mouseup", () => canvasShooter.style.cursor = "crosshair");
+// Change cursor (on mouse down on canvas):
+canvasShooter.addEventListener("mousedown", () => {
+    if (isGameOn) {
+        canvasShooter.style.cursor = "move";
+    }
+});
+
+// Change cursor (on mouse up on canvas):
+canvasShooter.addEventListener("mouseup", () => {
+    if (isGameOn) {
+        canvasShooter.style.cursor = "crosshair";
+    }
+});
