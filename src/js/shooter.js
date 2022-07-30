@@ -108,7 +108,7 @@ async function endGameAsync(isGameWon) {
 
     ctx.font = "100px Arial";
     ctx.fillStyle = isGameWon ? "green" : "red";
-    ctx.fillText(isGameWon ? `Your points: ${playerScore}` : "You lost! ", isGameWon ? 320 : 460, 375);
+    ctx.fillText(isGameWon ? `Your points: ${playerScore}/${countEnemiesTotal}` : "You lost! ", isGameWon ? 240 : 460, 375);
 
     await sleep(3000);
 
