@@ -97,7 +97,7 @@ async function playGameAsync() {
 async function endGameAsync(isGameWon) {
     isGameOn = false;
 
-    new Audio("./sounds/game_win_" + isGameWon ? "counter_terrorists.wav" : "terrorists.wav").play();
+    new Audio(isGameWon ? "./sounds/win_counter_terrorists.wav" : "./sounds/win_terrorists.wav").play();
 
     await sleep(1000);
 
